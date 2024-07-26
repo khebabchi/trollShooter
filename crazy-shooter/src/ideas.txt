@@ -1,0 +1,8 @@
+monster_face : 
+    has a predefined path : 
+        -- conditions :
+             - x should have a constant sign.
+             - angle has a predefined min and a max.
+             - start position and destination =  enemy.width/2. + 5.  + (window border)
+                - window border can be heigh or width.
+        - despawns when reaches destination.
