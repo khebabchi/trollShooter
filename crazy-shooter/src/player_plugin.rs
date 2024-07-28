@@ -11,7 +11,9 @@ pub enum PlayerState {
     Reloading,
 }
 #[derive(Component)]
-pub struct RiffleModeState;
+pub struct RiffleModeEnabled;
+#[derive(Component)]
+pub struct RiffleModeDisabled;
 #[derive(Component)]
 pub struct BulletCount;
 #[derive(Component)]
@@ -23,6 +25,7 @@ pub struct Player {
     pub shooting_couldown: Timer,
     pub bullet_count: i8,
     pub riffle_mode: bool,
+    pub kill_count: i8,
 }
 #[derive(Component)]
 pub struct Bullet {
@@ -128,16 +131,47 @@ pub fn update_bullet_position(
 }*/
 
 impl Player {
+    pub fn update_kill_count(&mut self, text: &mut Text) {
+        if self.riffle_mode {
+            self.kill_count = -1;
+            text.sections[0].value = "Kill ".to_string();
+            // text.sections[1].value will be set on next update
+            text.sections[2].value = " faces".to_string();
+            text.sections[3].value = " and ".to_string();
+            text.sections[4].style.color = Color::WHITE;
+            text.sections[5].value = "\nto Activate ".to_string();
+        } else if self.kill_count < 2 {
+            self.kill_count += 1;
+            text.sections[1].value = (3 - self.kill_count).to_string();
+        } else if self.kill_count == 2 {
+            self.kill_count += 1;
+            for i in 0..=3 {
+                text.sections[i].value = "".to_string();
+            }
+            text.sections[4].style.color = Color::LinearRgba(LinearRgba {
+                red: 1.,
+                green: 0.2,
+                blue: 0.2,
+                alpha: 1.,
+            });
+            text.sections[5].value = " to \nActivate ".to_string();
+        }
+    }
+
     pub fn rotate(&mut self, side: f32, fast: bool) {
         if let PlayerState::Reloading = self.state {
             self.rotation_speed = f32::to_radians(10.0) * side;
-        } else if !self.is_shooting(){
+        } else if !self.is_shooting() {
             self.timer = Timer::new(
-                Duration::from_millis(if fast { 1000 } else { 600 }),
+                Duration::from_millis(if fast && self.riffle_mode { 1000 } else { 600 }),
                 TimerMode::Once,
             );
             self.state = PlayerState::Rotating;
-            self.rotation_speed = f32::to_radians(if fast { 100.0 } else { 60.0 }) * side;
+            self.rotation_speed = f32::to_radians(if fast && self.riffle_mode {
+                100.0
+            } else {
+                60.0
+            }) * side;
         }
     }
     pub fn is_rotating(&self) -> bool {
@@ -173,14 +207,14 @@ impl Player {
             false
         }
     }
-    pub fn shoot(&mut self,state:bool) {
+    pub fn shoot(&mut self, state: bool) {
         info!("{}", self.riffle_mode);
         self.timer = Timer::new(
-            Duration::from_millis(if self.riffle_mode && state{ 100 } else { 400 }),
+            Duration::from_millis(if self.riffle_mode && state { 100 } else { 400 }),
             TimerMode::Once,
         );
         self.shooting_couldown = Timer::new(
-            Duration::from_millis(if self.riffle_mode && state{ 250 } else { 600 }),
+            Duration::from_millis(if self.riffle_mode && state { 250 } else { 600 }),
             TimerMode::Once,
         );
         self.state = PlayerState::Shooting;
@@ -218,8 +252,31 @@ impl Player {
     }
     pub fn update_timer(
         mut player_query: Query<(&mut Player, &mut Handle<Image>)>,
-        mut riffle_text_query: Query<&mut Visibility,(With<RiffleModeState>,Without<BulletCount>,Without<Player>)>,
-        mut ammo_query: Query<&mut Text, (Without<Player>,Without<RiffleModeState>, With<BulletCount>)>,
+        mut riffle_true_query: Query<
+            &mut Visibility,
+            (
+                With<RiffleModeEnabled>,
+                Without<BulletCount>,
+                Without<Player>,
+            ),
+        >,
+        mut riffle_false_query: Query<
+            (&mut Visibility, &mut Text),
+            (
+                With<RiffleModeDisabled>,
+                Without<RiffleModeEnabled>,
+                Without<BulletCount>,
+                Without<Player>,
+            ),
+        >,
+        mut ammo_query: Query<
+            &mut Text,
+            (
+                Without<Player>,
+                Without<RiffleModeEnabled>,
+                With<BulletCount>,
+            ),
+        >,
         time: Res<Time>,
         images: Res<Images>,
     ) {
@@ -227,24 +284,38 @@ impl Player {
             if !player.timer.finished() {
                 player.timer.tick(time.delta());
             } else {
-                if let PlayerState::Free=player.state{}else{ info!("{:?}", player.state);}
+                if let PlayerState::Free = player.state {
+                } else {
+                    info!("{:?}", player.state);
+                }
                 if let PlayerState::Reloading = player.state {
                     *texture = images.player.clone();
+                    info!(
+                        "count :{}  riffle:{}",
+                        player.kill_count, player.riffle_mode
+                    );
+                    if (player.kill_count == 3 && !player.riffle_mode) || player.riffle_mode {
+                        let mut riffle_true_visibility = riffle_true_query.single_mut();
+                        let (mut riffle_false_visibility, mut riffle_false_text) =
+                            riffle_false_query.single_mut();
+
+                        player.riffle_mode = !player.riffle_mode;
+                        player.update_kill_count(&mut *riffle_false_text);
+
+                        if let Visibility::Visible = *riffle_true_visibility {
+                            *riffle_true_visibility = Visibility::Hidden;
+                            *riffle_false_visibility = Visibility::Visible;
+                        } else {
+                            *riffle_true_visibility = Visibility::Visible;
+                            *riffle_false_visibility = Visibility::Hidden;
+                        }
+                    }
                     player.bullet_count = 8;
                     ammo_query.single_mut().sections[2].value = player.bullet_count.to_string();
                     ammo_query.single_mut().sections[2]
                         .style
                         .color
                         .set_alpha(1.);
-                }
-                if let PlayerState::Reloading = player.state {
-                    if let Visibility::Visible = *riffle_text_query.single(){
-                        *riffle_text_query.single_mut()=Visibility::Hidden;
-                    }else{
-                        *riffle_text_query.single_mut()=Visibility::Visible;
-                    }
-                    
-                    player.riffle_mode=!player.riffle_mode;
                 }
                 player.state = PlayerState::Free;
             }
@@ -284,13 +355,14 @@ impl Player {
                     *texture = images.reload.clone();
                 }
             }
-            if ((!player.riffle_mode && keyboard_input.just_pressed(KeyCode::Space)) || (player.riffle_mode && keyboard_input.pressed(KeyCode::Space)))
+            if ((!player.riffle_mode && keyboard_input.just_pressed(KeyCode::Space))
+                || (player.riffle_mode && keyboard_input.pressed(KeyCode::Space)))
                 && !player.is_shooting()
                 && !player.is_cooldown()
                 && !player.is_reloading()
             {
                 if player.bullet_count > 0 {
-                    let state=player.is_rotating() && keyboard_input.pressed(KeyCode::ShiftLeft);
+                    let state = player.is_rotating() && keyboard_input.pressed(KeyCode::ShiftLeft);
                     player.shoot(state);
                     ammo_query.single_mut().sections[2].value = player.bullet_count.to_string();
                     if player.bullet_count == 0 {

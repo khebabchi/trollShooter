@@ -1,16 +1,13 @@
-use std::f32::consts::PI;
-
 use aim_helper_plugin::AimHelper;
 use bevy::{audio::Volume, prelude::*, sprite::Anchor};
+use std::f32::consts::PI;
 ///////// exports
 mod aim_helper_plugin;
 mod enemy_plugin;
-mod notification_plugin;
 mod player_plugin;
 mod recources;
 pub use aim_helper_plugin::AimHelperPlugin;
 pub use enemy_plugin::{Enemy, EnemyName, EnemyPlugin};
-pub use notification_plugin::*;
 pub use player_plugin::*;
 pub use recources::*;
 pub fn setup(mut commands: Commands, images: Res<Images>, sounds: Res<Sounds>) {
@@ -43,6 +40,7 @@ pub fn setup(mut commands: Commands, images: Res<Images>, sounds: Res<Sounds>) {
             shooting_couldown: Timer::from_seconds(0.3, TimerMode::Once),
             bullet_count: 8,
             riffle_mode: true,
+            kill_count: -1,
         },
     ));
     commands.spawn((
@@ -164,7 +162,7 @@ pub fn setup(mut commands: Commands, images: Res<Images>, sounds: Res<Sounds>) {
     ));
     commands.spawn((
         Text2dBundle {
-            visibility:Visibility::Visible,
+            visibility: Visibility::Visible,
             text_anchor: Anchor::TopLeft,
 
             text: Text::from_sections([
@@ -193,7 +191,7 @@ pub fn setup(mut commands: Commands, images: Res<Images>, sounds: Res<Sounds>) {
                     },
                 ),
                 TextSection::new(
-                    " to\nActivate ",
+                    " to\nUse ",
                     TextStyle {
                         font_size: 20.0,
                         color: Color::WHITE.with_alpha(0.3),
@@ -215,6 +213,92 @@ pub fn setup(mut commands: Commands, images: Res<Images>, sounds: Res<Sounds>) {
             },
             ..default()
         },
-        RiffleModeState,
+        RiffleModeEnabled,
+    ));
+    commands.spawn((
+        Text2dBundle {
+            visibility: Visibility::Hidden,
+            text_anchor: Anchor::TopLeft,
+
+            text: Text::from_sections([
+                TextSection::new(
+                    "Kill ",
+                    TextStyle {
+                        font_size: 20.0,
+                        color: Color::LinearRgba(LinearRgba {
+                            red: 1.,
+                            green: 0.2,
+                            blue: 0.2,
+                            alpha: 1.,
+                        }),
+                        ..default()
+                    },
+                ),
+                TextSection::new(
+                    "3",
+                    TextStyle {
+                        font_size: 20.0,
+                        color: Color::LinearRgba(LinearRgba {
+                            red: 1.,
+                            green: 0.2,
+                            blue: 0.2,
+                            alpha: 1.,
+                        }),
+                        ..default()
+                    },
+                ),
+                TextSection::new(
+                    " faces",
+                    TextStyle {
+                        font_size: 20.0,
+                        color: Color::LinearRgba(LinearRgba {
+                            red: 1.,
+                            green: 0.2,
+                            blue: 0.2,
+                            alpha: 1.,
+                        }),
+                        ..default()
+                    },
+                ),
+                TextSection::new(
+                    " and ",
+                    TextStyle {
+                        font_size: 20.0,
+                        color: Color::WHITE.with_alpha(0.3),
+                        ..default()
+                    },
+                ),
+                TextSection::new(
+                    "Reload",
+                    TextStyle {
+                        font_size: 20.0,
+                        color: Color::WHITE,
+                        ..default()
+                    },
+                ),
+                TextSection::new(
+                    "\nto Activate ",
+                    TextStyle {
+                        font_size: 20.0,
+                        color: Color::WHITE.with_alpha(0.3),
+                        ..default()
+                    },
+                ),
+                TextSection::new(
+                    "Riffle Mode",
+                    TextStyle {
+                        font_size: 20.0,
+                        color: Color::WHITE,
+                        ..default()
+                    },
+                ),
+            ]),
+            transform: Transform {
+                translation: Vec3::new(100., -340., 10.),
+                ..default()
+            },
+            ..default()
+        },
+        RiffleModeDisabled,
     ));
 }

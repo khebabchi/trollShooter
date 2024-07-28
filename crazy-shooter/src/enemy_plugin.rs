@@ -1,4 +1,6 @@
-use crate::{AppState, Bullet, Global, GlobalScoreText, HealthCount, Images, Player, Sounds, SpawnRates};
+use crate::{
+    AppState, Bullet, BulletCount, Global, GlobalScoreText, HealthCount, Images, Player, RiffleModeDisabled, RiffleModeEnabled, Sounds, SpawnRates
+};
 use bevy::{
     audio::Volume,
     ecs::{bundle, system::EntityCommands},
@@ -80,16 +82,11 @@ impl Enemy {
         self.name
     }
 
-    pub fn push_back(
-        &mut self,
-        duration: f32,
-        velocity:Vec3
-    ) {
+    pub fn push_back(&mut self, duration: f32, velocity: Vec3) {
         self.timer = Timer::from_seconds(duration, TimerMode::Once);
         self.speed = -300.;
         self.is_hurt = true;
         self.velocity = velocity;
-        
     }
 
     ////////////////////////////////////////////////
@@ -137,8 +134,7 @@ impl Enemy {
                     transform.translation += enemy.velocity * time.delta_seconds() * enemy.speed;
                 } else {
                     let velocity = -transform.translation.normalize();
-                    transform.translation +=
-                        enemy.velocity * time.delta_seconds() * enemy.speed;
+                    transform.translation += enemy.velocity * time.delta_seconds() * enemy.speed;
                     enemy.speed /= 1.15;
                 }
             } else {
@@ -213,37 +209,57 @@ impl Enemy {
     pub fn handle_collision(
         mut commands: Commands,
         mut enemy_query: Query<(Entity, &mut Enemy, &mut Transform), Without<Bullet>>,
+        mut riffle_false_query: Query<
+            &mut Text,
+            (
+                With<RiffleModeDisabled>,
+                Without<RiffleModeEnabled>,
+                Without<BulletCount>,
+                Without<Player>,
+            ),
+        >,
+        mut player_query: Query<&mut Player>,
         bullet_query: Query<(Entity, &Bullet, &Transform), Without<Enemy>>,
         mut score_text_query: Query<
             &mut Text,
-            (With<GlobalScoreText>, Without<Enemy>, Without<Bullet>),
+            (With<GlobalScoreText>, Without<Enemy>, Without<Bullet>,Without<RiffleModeDisabled>),
         >,
         sounds: Res<Sounds>,
         mut global: ResMut<Global>,
     ) {
-        for (enemy_entity, mut enemy, enemy_transform) in enemy_query.iter_mut() {
-            for (bullet_entity, bullet, bullet_transform) in bullet_query.iter() {
-                if bullet.hit_enemy(&enemy, &enemy_transform, bullet_transform) {
-                    commands.entity(bullet_entity).despawn();
-                    
-                    if enemy.health == 1 {
-                        global.increase_score(enemy.name, score_text_query.single_mut());
-                        commands.entity(enemy_entity).despawn();
-                        commands.spawn(AudioBundle {
-                            source: sounds.enemies.troll_hurt.1.clone(),
-                            settings: PlaybackSettings::DESPAWN,
-                            ..default()
-                        });
-                    } else {
-                        enemy.health -= 1;
-                        global.score+=1;
-                        let velocity=(-enemy_transform.translation.clone().normalize()-2.*Vec3::new(enemy_transform.translation.x-bullet_transform.translation.x,enemy_transform.translation.y-bullet_transform.translation.y,0.).normalize()).normalize();
-                        enemy.push_back(0.7, velocity);
-                        commands.spawn(AudioBundle {
-                            source: sounds.enemies.troll_hurt.0.clone(),
-                            settings: PlaybackSettings::DESPAWN,
-                            ..default()
-                        });
+        if let Ok(mut player) = player_query.get_single_mut() {
+            for (enemy_entity, mut enemy, enemy_transform) in enemy_query.iter_mut() {
+                for (bullet_entity, bullet, bullet_transform) in bullet_query.iter() {
+                    if bullet.hit_enemy(&enemy, &enemy_transform, bullet_transform) {
+                        commands.entity(bullet_entity).despawn();
+
+                        if enemy.health == 1 {
+                            global.increase_score(enemy.name, score_text_query.single_mut());
+                            commands.entity(enemy_entity).despawn();
+                            player.update_kill_count(&mut *riffle_false_query.single_mut());
+                            commands.spawn(AudioBundle {
+                                source: sounds.enemies.troll_hurt.1.clone(),
+                                settings: PlaybackSettings::DESPAWN,
+                                ..default()
+                            });
+                        } else {
+                            enemy.health -= 1;
+                            global.score += 1;
+                            let velocity = (-enemy_transform.translation.clone().normalize()
+                                - 2. * Vec3::new(
+                                    enemy_transform.translation.x - bullet_transform.translation.x,
+                                    enemy_transform.translation.y - bullet_transform.translation.y,
+                                    0.,
+                                )
+                                .normalize())
+                            .normalize();
+                            enemy.push_back(0.7, velocity);
+                            commands.spawn(AudioBundle {
+                                source: sounds.enemies.troll_hurt.0.clone(),
+                                settings: PlaybackSettings::DESPAWN,
+                                ..default()
+                            });
+                        }
                     }
                 }
             }
@@ -251,9 +267,12 @@ impl Enemy {
     }
 
     fn handle_by_name(
-        mut enemy_query: Query<(Entity, &mut Transform, &mut Handle<Image>, &mut Enemy),Without<HealthCount>>,
-        mut health_query:Query<&HealthCount>,
-        
+        mut enemy_query: Query<
+            (Entity, &mut Transform, &mut Handle<Image>, &mut Enemy),
+            Without<HealthCount>,
+        >,
+        mut health_query: Query<&HealthCount>,
+
         time: Res<Time>,
         images: Res<Images>,
         sounds: Res<Sounds>,
@@ -266,7 +285,7 @@ impl Enemy {
                     let x = transform.translation.x;
                     let y = transform.translation.y;
 
-                    if (x * x + y * y).sqrt() < 150. && health_query.single().health==1{
+                    if (x * x + y * y).sqrt() < 150. && health_query.single().health == 1 {
                         *texture = images.enemies.troll_close.clone();
                         let shaking = perpendicular_vector(transform.translation.normalize())
                             * rng.gen_range(-20.0..20.0)
@@ -302,16 +321,26 @@ impl Enemy {
                 t /= 2;
             }
             if t == 1 {
-               // global.spawn_rate *= 1.2;
-                global.difficulty+=1;
-                info!("difficiulty : {}  |  spawn rate : {}",global.difficulty,global.spawn_rate)
+                // global.spawn_rate *= 1.2;
+                global.difficulty += 1;
+                info!(
+                    "difficiulty : {}  |  spawn rate : {}",
+                    global.difficulty, global.spawn_rate
+                )
             }
             global.cummulated_spawn += global.spawn_rate;
             while global.cummulated_spawn > 1. {
                 global.cummulated_spawn -= 1.;
                 // randomize spawn location :
                 let section = rng.gen_range(1..=4);
-                let (wide, tite) = (if rng.gen_range(0..=1)==1 {rng.gen_range(-500.0..-100.0)}else{rng.gen_range(100.0..500.0)}, rng.gen_range(400.0..500.0));
+                let (wide, tite) = (
+                    if rng.gen_range(0..=1) == 1 {
+                        rng.gen_range(-500.0..-100.0)
+                    } else {
+                        rng.gen_range(100.0..500.0)
+                    },
+                    rng.gen_range(400.0..500.0),
+                );
                 let translation = match section {
                     1 => Vec3::new(wide, tite, 2.),
                     2 => Vec3::new(wide, -tite, 2.),
