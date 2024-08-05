@@ -1,5 +1,5 @@
 use aim_helper_plugin::AimHelper;
-use bevy::{audio::Volume, prelude::*, sprite::Anchor};
+use bevy::{prelude::*, sprite::Anchor};
 use std::f32::consts::PI;
 ///////// exports
 mod aim_helper_plugin;
@@ -10,7 +10,7 @@ pub use aim_helper_plugin::AimHelperPlugin;
 pub use enemy_plugin::{Enemy, EnemyName, EnemyPlugin};
 pub use player_plugin::*;
 pub use recources::*;
-pub fn setup(mut commands: Commands, images: Res<Images>, sounds: Res<Sounds>) {
+pub fn setup(mut commands: Commands, images: Res<Images>) {
     // 2D orthographic camera
     commands.spawn(Camera2dBundle::default());
     commands.spawn(SpriteBundle {
@@ -33,7 +33,7 @@ pub fn setup(mut commands: Commands, images: Res<Images>, sounds: Res<Sounds>) {
             state: PlayerState::Free,
             timer: Timer::from_seconds(0.0, TimerMode::Once),
             shooting_couldown: Timer::from_seconds(0.3, TimerMode::Once),
-            bullet_count: 20,
+            bullet_count: 20, 
             riffle_mode: true,
             kill_count: -1,
             used_shift: false,
