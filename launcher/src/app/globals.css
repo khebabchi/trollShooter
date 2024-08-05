@@ -67,23 +67,46 @@
     @apply bg-background text-foreground;
   }
 }
-#game-box{
+#game-box {
   height: 800px;
   width: 800px;
   background-color: gray;
 }
 .selectDisable {
-    -webkit-user-select: none;
-    -khtml-user-select: none;
-    -moz-user-select: none;
-    -o-user-select: none;
-    user-select: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -o-user-select: none;
+  user-select: none;
+  -webkit-user-drag: none;
+  -khtml-user-drag: none;
+  -moz-user-drag: none;
+  -o-user-drag: none;
+  user-drag: none;
 }
 
-.selectEnable { 
-    -webkit-user-select: text;
-    -khtml-user-select: text;
-    -moz-user-select: text;
-    -o-user-select: text;
-    user-select: text;
+.selectEnable {
+  -webkit-user-select: text;
+  -khtml-user-select: text;
+  -moz-user-select: text;
+  -o-user-select: text;
+  user-select: text;
+}
+
+.invert {
+  -webkit-transform: scaleX(-1);
+  transform: scaleX(-1);
+}
+.hidden {
+  display: none;
+}
+.gradient-dashed-border {
+  border: 2px solid transparent;
+  background: linear-gradient(#000000 0 0) padding-box,
+    linear-gradient(to right, #cfb35dc9, #63552ccc) border-box;
+}
+
+.gradient-dashed-border:hover {
+  background: linear-gradient(#000000 0 0) padding-box,
+    linear-gradient(to right, #cfb35d, #63552c) border-box;
 }

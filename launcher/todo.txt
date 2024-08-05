@@ -1,0 +1,5 @@
+data.classement == 1
+          ? " gradient-dashed-border"
+          : data.classement == 2 || data.classement == 3
+          ? "text-[#953ac3a1] hover:text-[#9840c4d0]"
+          : "text-zinc-600 hover:text-zinc-500"

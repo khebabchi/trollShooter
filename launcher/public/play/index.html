@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+
+  <title>play</title>
+  <style>
+    body {
+      padding: 0;
+      margin: 0;
+      background-color: black;
+      overflow: hidden;
+    }
+
+    #game-canvas {
+      margin-left: -1px;
+      margin-top: -1px;
+    }
+
+    #toast-div img {
+      width: 52px;
+      height: 52px;
+      margin: -11px;
+    }
+
+    #toast-div {
+      padding: 0;
+      opacity: 0.9;
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      color: white;
+      font-family: "Inter", sans-serif;
+    }
+
+    #toast-div div {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    #toast-div div span {
+      font-size: small;
+      opacity: 0.6;
+    }
+  </style>
+</head>
+
+<body>
+  <div>
+
+    <canvas id="game-canvas">
+  </div>
+
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+  <script type="module" src="index.js"></script>
+</body>
+
+</html>

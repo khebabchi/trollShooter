@@ -25,13 +25,10 @@
       },
       "externalBin": [],
       "icon": [
-        "icons/32x32.png",
-        "icons/128x128.png",
-        "icons/128x128@2x.png",
         "icons/icon.icns",
         "icons/icon.ico"
       ],
-      "identifier": "com.tauri.dev",
+      "identifier": "sidorios.troll-shooter.game",
       "longDescription": "",
       "macOS": {
         "entitlements": null,
@@ -40,14 +37,13 @@
         "providerShortName": null,
         "signingIdentity": null
       },
-      "resources": [],
+      "resources": ["assets/bg.mp3","assets/laugh.mp3"],
       "shortDescription": "",
       "targets": "all",
       "windows": {
         "certificateThumbprint": null,
         "digestAlgorithm": "sha256",
         "timestampUrl": ""
-
       }
     },
     "security": {
@@ -60,10 +56,11 @@
       {
         "fullscreen": false,
         "decorations": false,
-        "height": 840,
+        "height": 650,
         "resizable": false,
-        "title": "STT Launcher",
-        "width": 1300
+        "title": "Survive the troll",
+        "width": 400,
+        "transparent": true
       }
     ]
   }
