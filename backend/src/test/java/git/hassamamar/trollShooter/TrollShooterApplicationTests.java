@@ -1,10 +1,10 @@
-package rust.GameLauncher.backend;
+package git.hassamamar.trollShooter;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class BackendApplicationTests {
+class TrollShooterApplicationTests {
 
 	@Test
 	void contextLoads() {
