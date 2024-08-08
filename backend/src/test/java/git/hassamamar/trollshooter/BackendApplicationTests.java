@@ -1,10 +1,10 @@
-package git.hassamamar.trollShooter;
+package git.hassamamar.trollshooter;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class TrollShooterApplicationTests {
+class BackendApplicationTests {
 
 	@Test
 	void contextLoads() {
