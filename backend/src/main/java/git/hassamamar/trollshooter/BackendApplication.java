@@ -20,7 +20,7 @@ public class BackendApplication {
     CommandLineRunner runner(AchievementRepository achievementRepository, UserRepository userRepository) {
         return args -> {
             System.out.println("AchievementRepository--------------------------------------------------------------");
-            userRepository.insert("hocine", "amar@gmail.com", "password123");
+            userRepository.insert("amar", "amar@gmail.com", "password123");
             achievementRepository.insert(0, "amar");
             System.out.println("AchievementRepository--------------------------------------------------------------");
         };
