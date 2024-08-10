@@ -20,16 +20,26 @@ public class UserController {
     @PostMapping("")
     public void post(@RequestBody User user) {
         userRepository.insert(user.username(), user.email(), user.password());
-
     }
 
-    @GetMapping("")
+    @PostMapping("/users/{username}/score/{score}")
+    public void post(@PathVariable int score, @PathVariable String username) {
+        userRepository.updateScore(username, score);
+    }
+
+    @GetMapping("all")
     public List<UserInfo> getAll() {
         return userRepository.getAllInfo();
     }
 
-    @GetMapping("/{username}")
-    public Optional<User> get(@PathVariable String username) {
-        return userRepository.get(username);
+    public record LoginInfo(
+            String username,
+            String password
+    ) {
+    }
+
+    @GetMapping("")
+    public Optional<User> get(@RequestBody LoginInfo loginInfo) {
+        return userRepository.get(loginInfo);
     }
 }

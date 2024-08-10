@@ -1,6 +1,6 @@
 use bevy::{asset::AssetMetaCheck, prelude::*, window::WindowTheme};
 use bevy_embedded_assets::{EmbeddedAssetPlugin, PluginMode};
-use bevy_game::{setup, AimHelperPlugin, EnemyPlugin, PlayerPlugin, ResourcesPlugin};
+use bevy_game::{setup,  AimHelperPlugin, EnemyPlugin, PlayerPlugin, ResourcesPlugin};
 use wasm_bindgen::prelude::wasm_bindgen;
 fn main() {
 

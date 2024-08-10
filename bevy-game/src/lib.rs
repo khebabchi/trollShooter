@@ -11,12 +11,15 @@ pub use enemy_plugin::{Enemy, EnemyName, EnemyPlugin};
 pub use player_plugin::*;
 pub use recources::*;
 pub fn setup(mut commands: Commands, images: Res<Images>) {
+
+   
     // 2D orthographic camera
     commands.spawn(Camera2dBundle::default());
     commands.spawn(SpriteBundle {
         texture: images.background.clone(),
         ..default()
     });
+    
     // player controlled
     commands.spawn((
         SpriteBundle {
@@ -274,4 +277,5 @@ pub fn setup(mut commands: Commands, images: Res<Images>) {
         },
         RiffleModeDisabled,
     ));
+    Achievements::validate(1);
 }

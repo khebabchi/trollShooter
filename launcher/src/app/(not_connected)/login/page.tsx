@@ -1,20 +1,75 @@
 "use client";
 import "../style.css";
-import { invoke } from "@tauri-apps/api/tauri";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Logo from "../../logo";
-import { useContext } from "react";
+import { useContext, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import Image from "next/image";
-import { AppContext } from "@/app/_context/appContext";
+import { AppContext, User } from "@/app/_context/appContext";
+//import { Body} from "@tauri-apps/api/http";
 export default function Login() {
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
   if (typeof window !== "undefined") {
-    invoke("login");
+    window.__TAURI__.tauri.invoke("login");
+    console.log("window.__TAURI__.http");
   }
+
   const router = useRouter();
-   const context= useContext( AppContext);
-   const appStarted=context?.appState.appStarted;
+  const context = useContext(AppContext);
+  const appStarted = context?.appState.appStarted;
+  async function handleLogin() {
+    setErrorMessage("");
+    const url = `https://trollshooterbackend-production.up.railway.app/user/login`;
+    try {
+      const response = await window.__TAURI__.http.fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json", // Correctly set the content type
+        },
+        body: window.__TAURI__.http.Body.json({
+          username,
+          password,
+        }),
+      });
+      if (!response.ok) {
+        setErrorMessage("Username/password incorrect");
+      } else {
+        const user: User = response.data;
+        if (!user) {
+          setErrorMessage("Username/password incorrect");
+        } else {
+          window.__TAURI__.tauri.invoke("set_user", { user });
+
+          console.log(user);
+          router.push("/home");
+        }
+      }
+    } catch (error: any) {
+      console.log("------------------");
+      console.error(error);
+      setErrorMessage("Username/password incorrect");
+      console.log("------------------");
+    }
+  }
+  //------------------------------------
+
+  useEffect(() => {
+    function handleKeyPress(event:KeyboardEvent) {
+      if (event.key === "Enter") {
+        handleLogin();
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyPress);
+    
+    return () => {
+      window.removeEventListener("keydown", handleKeyPress);
+    };
+  });
+
+  //------------------------------------
   return (
     <div className="signin" data-tauri-drag-region>
       <div className="content" data-tauri-drag-region>
@@ -25,14 +80,28 @@ export default function Login() {
 
         <div className="form" data-tauri-drag-region>
           <div className="inputBox">
-            <input type="text" required /> <i>Username</i>
+            <input
+              type="text"
+              required
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+            />{" "}
+            <i>Username</i>
           </div>
 
           <div className="inputBox">
-            <input type="password" required /> <i>Password</i>
+            <input
+              type="password"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />{" "}
+            <i>Password</i>
           </div>
-
-          <div className="links">
+          <span className="h-3 mt-[-10px] mb-[5px] text-sm text-red-300">
+            {errorMessage}
+          </span>
+          <div className="links mb-[-7px]">
             <Link draggable="false" className="a" href="#">
               Forgot Password
             </Link>
@@ -41,32 +110,13 @@ export default function Login() {
             </Link>
           </div>
 
-          <div className="inputBox flex gap-2 flex-col">
-            <Button
-              className="input-button input hover:bg-zinc-800"
-              color="white"
-              onClick={() => {
-                router.push("/home");
-              }}
-            >
-              Login
-            </Button>
-            <Button
-              className="w-full text-[1em] hover:bg-zinc-900 hover:border-zinc-500 bg-black border-zinc-600 border-[2px] h-auto py-[7px]"
-              onClick={() => {
-                router.push("/home");
-              }}
-            >
-              <Image
-                src="/img_app/google.png"
-                width={17}
-                height={17}
-                alt=""
-                className="mr-4"
-              />{" "}
-              Connect with google
-            </Button>
-          </div>
+          <Button
+            className="input-button input text-lg hover:bg-zinc-200 bg-zinc-100 text-black font-bold"
+            color="white"
+            onClick={handleLogin}
+          >
+            Login
+          </Button>
         </div>
       </div>
     </div>

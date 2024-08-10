@@ -3,7 +3,6 @@
 import { useEffect, useState, createContext, ReactNode, FC } from "react";
 import useNetworkStatus from "../useNetworkStatus";
 import NetworkOffline from "../networkOffline";
-import { invoke } from "@tauri-apps/api/tauri";
 import { Minus, X } from "lucide-react";
 import { usePathname } from "next/navigation";
 
@@ -17,19 +16,27 @@ interface AppContextProps {
 }
 
 const AppContext = createContext<AppContextProps | undefined>(undefined);
-
+export interface User {
+  username?: string;
+  email?: string;
+  password?: string;
+  topScore?: number;
+  createdAt?: string;
+}
 const AppProvider: FC<{ children: ReactNode }> = ({ children }) => {
+  const[user,setUser]=useState<User>({})
+   const path = usePathname();
   const [appState, setAppState] = useState<AppState>({
-    appStarted: false,
+    appStarted: path.includes("home"),
   });
   const networkChecker = useNetworkStatus();
 
-  const [started, setStarted] = useState(false);
-  const path = usePathname();
+  const [started, setStarted] = useState(path.includes("home"));
+ 
   useEffect(() => {
     document.body.style.overflow = "hidden";
     //document.addEventListener("contextmenu", (event) => event.preventDefault());
-    /*
+    
     const f = (e: any) => {
       for (let i = 1; i <= 12; i++) {
         if (e.key == `F${i}`) {
@@ -46,15 +53,15 @@ const AppProvider: FC<{ children: ReactNode }> = ({ children }) => {
     
     document.onkeydown = f;
     document.onclick = f;
-    */
+    
     if (!started && networkChecker.isOnline) {
       setTimeout(() => setAppState({ appStarted: true }), 5700);
-      invoke("not_connected");
+      window.__TAURI__.tauri.invoke("not_connected");
       setStarted(true);
     }
   }, [appState.appStarted, started, setAppState, networkChecker.isOnline]);
   return (
-    <AppContext.Provider value={{ appState, setAppState }}>
+    <AppContext.Provider value={{ appState, setAppState}}>
       {path == "/home/goplay" ? (
         children
       ) : (
@@ -72,17 +79,17 @@ const AppProvider: FC<{ children: ReactNode }> = ({ children }) => {
             <Minus
               className=" text-white hover:opacity-70 hover:cursor-pointer z-10"
               onClick={() => {
-                invoke("minimize_window");
+                window.__TAURI__.tauri.invoke("minimize_window");
               }}
             />
             <X
               className=" text-white hover:opacity-70 hover:cursor-pointer z-10"
               onClick={() => {
-                invoke("close_window");
+                 window.__TAURI__.tauri.invoke("close_window");
               }}
             />
           </div>
-          {networkChecker.isOnline && typeof window !== "undefined" ? (
+          {true || networkChecker.isOnline && typeof window !== "undefined" ? (
             children
           ) : (
             <NetworkOffline data-tauri-drag-region />

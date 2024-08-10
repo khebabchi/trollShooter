@@ -7,20 +7,8 @@ export interface achievement {
   description: string;
   rarity: number;
   done: boolean;
-  completion_rate: number;
 }
-export default function Achievement({
-  data ,
-}: {
-  data: {
-    img: string;
-    title: string;
-    description: string;
-    rarity: number;
-    done: boolean;
-    completion_rate: number;
-  };
-}) {
+export default function Achievement({ data }: { data: achievement }) {
   const [hovered, setHovered] = useState(false);
   return (
     <div>

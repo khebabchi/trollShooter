@@ -25,7 +25,6 @@ export default function AchievementsList({
     i <= finalAchs.length / 4 + (finalAchs.length % 4 != 0 ? 1 : 0);
     i++
   ) {
-    console.log(`i = ${i}`);
     paginationItems.push(
       <PaginationItem>
         <PaginationLink onClick={() => setPgInd(i)} isActive={i == pgInd}>
@@ -53,7 +52,7 @@ export default function AchievementsList({
   return (
     <>
       <div
-        className="flex flex-col h-[340px] gap-4 items-center gap-3"
+        className="flex flex-col h-[340px] gap-4 items-center"
         data-tauri-drag-region
       >
         {displayedChs}

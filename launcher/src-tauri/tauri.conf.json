@@ -1,6 +1,7 @@
 {
   "build": {
     "beforeBuildCommand": "npm run build",
+    "withGlobalTauri":true,
     "beforeDevCommand": "npm run dev",
     "devPath": "http://localhost:3000",
     "distDir": "../out"
@@ -14,6 +15,14 @@
       "all": false,
       "window": {
         "startDragging": true
+      },
+      "http": {
+        "all": false,
+        "request": true,
+        "scope": [
+          "https://api.github.com/repos/tauri-apps/*",
+          "https://trollshooterbackend-production.up.railway.app/*"
+        ]
       }
     },
     "bundle": {

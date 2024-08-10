@@ -1,32 +1,35 @@
 "use client";
-import { Button } from "@/components/ui/button";
-import { invoke } from "@tauri-apps/api/tauri";
 import Logo from "../logo";
 import Link from "next/link";
 import { AwardIcon, SettingsIcon, UngroupIcon } from "lucide-react";
 import { useContext, useRef } from "react";
-import { usePathname } from "next/navigation";
-import { AppContext } from "../_context/appContext";
+import { redirect, usePathname } from "next/navigation";
+import { AppContext, User } from "../_context/appContext";
 export default function HomeLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   const context = useContext(AppContext);
-  const appStarted=context?.appState.appStarted==true;
+  const appStarted = context?.appState.appStarted == true;
   const invoked = useRef(false);
   if (typeof window !== "undefined" && !invoked.current) {
-    invoke("home");
+    window.__TAURI__.tauri.invoke("home");
     invoked.current = true;
   }
   const path = usePathname();
+  window.__TAURI__.tauri.invoke("get_user").then((user:User) => {
+    if (!user.username) {
+      console.info(user);
+      redirect("/login");
+    }
+  });
   const linkClasses = (href: string): string =>
     `flex selectDisable transition-opacity hover:opacity-100 selectDisable ${
       path == href
         ? " opacity-100 underline underline-offset-[10px]"
         : " opacity-50"
     }`;
-console.log(path != "/home/goplay",path);
   return (
     <>
       {path != "/home/goplay" ? (
@@ -39,20 +42,21 @@ console.log(path != "/home/goplay",path);
             className="flex gap-7 items-center text-white selectDisable"
             data-tauri-drag-region
           >
-            <a
-              href="/home/goplay"
+            <Link
+              href="/play/index.html"
+              onClick={() => window.__TAURI__.tauri.invoke("play")}
               className="selectDisable py-[6px] bg-white text-black hover:opacity-70 transition-opacity  font-semibold text-lg rounded-xl px-5 mr-5"
             >
               Play
-            </a>
+            </Link>
             <Link
               draggable={false}
-              className={linkClasses("/home/account")}
-              href="/home/account"
+              className={linkClasses("/home")}
+              href="/home"
             >
               <SettingsIcon size={23} />
               <span className="ml-[-22px]">
-                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Account
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Profile
               </span>
             </Link>
             <Link
@@ -80,7 +84,9 @@ console.log(path != "/home/goplay",path);
             {children}
           </div>
         </div>
-      ):children}
+      ) : (
+        children
+      )}
     </>
   );
 }

@@ -16,8 +16,6 @@ fn perpendicular_vector(vec: Vec3) -> Vec3 {
 #[derive(Clone, Debug)]
 pub enum EnemyName {
     TrollFace,
-    BoyFace(Option<Timer>),
-    ExcitedFace,
     Monster(Vec3),
 }
 #[derive(Component)]
@@ -38,19 +36,16 @@ impl Enemy {
         Enemy {
             width: match name {
                 EnemyName::TrollFace | EnemyName::Monster(_) => 64.,
-                _ => todo!(),
             },
             health: match name {
                 EnemyName::TrollFace => 3,
                 EnemyName::Monster(_) => 2,
-                _ => todo!(),
             },
 
             timer: Timer::from_seconds(0., TimerMode::Once),
             speed: match name {
                 EnemyName::TrollFace => 50.,
                 EnemyName::Monster(_) => 100.,
-                _ => todo!(),
             },
             name,
             is_hurt: false,
@@ -62,8 +57,6 @@ impl Enemy {
     pub fn sprite(enemy_name: EnemyName, images: &Res<Images>) -> Handle<Image> {
         match enemy_name {
             EnemyName::TrollFace => images.enemies.troll_far.clone(),
-            EnemyName::BoyFace(_) => todo!(),
-            EnemyName::ExcitedFace => todo!(),
             EnemyName::Monster(_) => images.enemies.monster_main.clone(),
         }
     }
@@ -172,7 +165,6 @@ impl Enemy {
                 }
             } else {
                 if let Ok(_) = jumpscare_query.get_single_mut() {
-                    
 
                     // scale of end screen
                 } else {
@@ -258,7 +250,6 @@ impl Enemy {
                     Enemy::new(enemy_name.clone(), (*destination - translation).normalize()),
                 ));
             }
-            _ => todo!(),
         }
     }
 
@@ -305,6 +296,18 @@ impl Enemy {
                                 }
                                 healthcount_query.single_mut().1.sections[0].value =
                                     healthcount_query.single_mut().0.health.to_string();
+                                global.achievements.inc_monster();
+                            } else {
+                                let x = enemy_transform.translation.x;
+                                let y = enemy_transform.translation.y;
+
+                                if (x * x + y * y).sqrt() < 150.
+                                    && healthcount_query.single().0.health == 1
+                                {
+                                    global.achievements.inc_angry();
+                                } else {
+                                    global.achievements.inc_troll();
+                                }
                             }
 
                             player.update_kill_count(&mut *riffle_false_query.single_mut());
@@ -321,15 +324,12 @@ impl Enemy {
                             enemy.health -= 1;
                             global.score += 1;
                             let velocity = (-enemy_transform.translation.clone().normalize()
-                                - 0.5
-                                    * Vec3::new(
-                                        enemy_transform.translation.x
-                                            - bullet_transform.translation.x,
-                                        enemy_transform.translation.y
-                                            - bullet_transform.translation.y,
-                                        0.,
-                                    )
-                                    .normalize())
+                                - Vec3::new(
+                                    enemy_transform.translation.x - bullet_transform.translation.x,
+                                    enemy_transform.translation.y - bullet_transform.translation.y,
+                                    0.,
+                                )
+                                .normalize())
                             .normalize();
                             enemy.push_back(0.7, velocity);
 
@@ -390,7 +390,6 @@ impl Enemy {
                         images.enemies.monster_main.clone()
                     }
                 }
-                _ => todo!("Not implemented : handle_by_name {:?}", enemy.name),
             }
         }
     }
@@ -435,7 +434,7 @@ impl Enemy {
                     EnemyName::TrollFace
                 };
 
-                let mut translation ;
+                let mut translation;
                 if let EnemyName::Monster(ref mut destination) = chosen_monster {
                     let section = rng.gen_range(1..=4);
                     translation = match section {

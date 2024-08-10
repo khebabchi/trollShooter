@@ -1,21 +1,25 @@
 "use client";
 import AchievementsList from "./achievementList";
 import { Filter } from "lucide-react";
-import achievements from "../../../../public/achievements";
+import achievements from "@/../public/achievements.js";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
-import { useState } from "react";
+import { useEffect,  useState } from "react";
 import { CheckedState } from "@radix-ui/react-checkbox";
 import { achievement } from "./achievement";
+import { User } from "@/app/_context/appContext";
 
 export default function AchievementsLayout() {
   const [open, setOpen] = useState(false);
   const [filters, setFilters] = useState(new Set([1, 2, 3, 4, 5]));
   const [search, setSearch] = useState("");
+  const [fetched, setFetched] = useState<
+    { id: number; username: string; unlocked_at: string }[]
+  >([]);
   function HandleSelectChange(checked: CheckedState, i: number) {
     const newFilters = new Set(filters); // Create a copy of the current filters
     if (checked) {
@@ -25,33 +29,60 @@ export default function AchievementsLayout() {
     }
     setFilters(newFilters);
   }
-  const fetched: { done: boolean; completion_rate: number }[] = [
-    { done: true, completion_rate: 1 },
-    { done: true, completion_rate: 1 },
-    { done: false, completion_rate: 1 },
-    { done: true, completion_rate: 1 },
-  ];
-  const achs = achievements.map((data, ind) => {
-    return { ...fetched[ind], ...data };
-  });
-  const sortedAchs = achs.sort((ach_1, ach_2) => {
-    if (ach_1.done === ach_2.done) {
-      return ach_2.rarity - ach_1.rarity;
+
+  //------------------------------------------------------------------------------------------------------------
+  async function fetchAchievements(username:string|undefined) {
+    try {
+      const response = await window.__TAURI__.http.fetch(
+        `https://trollshooterbackend-production.up.railway.app/users/${username}/achievements`
+      );
+      if (response.ok) {
+        setFetched(response.data);
+        console.log(response.data)
+      }
+    } catch (error: any) {
+      console.error(error);
     }
-    return ach_1.done ? -1 : 1;
-  });
-  const FiltersedAch: achievement[] = [];
-  sortedAchs.forEach((ach) => {
-    filters.has(ach.rarity) &&
-      ((ach.done && filters.has(4)) || (!ach.done && filters.has(5))) &&
-      FiltersedAch.push(JSON.parse(JSON.stringify(ach)));
-  });
-  const SearchAch: achievement[] = [];
-  FiltersedAch.forEach((ach) => {
-    (ach.title.toLowerCase().includes(search.toLowerCase()) ||
-      ach.description.toLowerCase().includes(search.toLowerCase())) &&
-      SearchAch.push(JSON.parse(JSON.stringify(ach)));
-  });
+  }
+  //------------------------------------------------------------------------------------------------------------
+  function setupAchievements(
+    fetched: { id: number; username: string; unlocked_at: string }[]
+  ): achievement[] {
+    const achs = achievements.map((data, ind) => {
+      
+      return {
+        done: fetched.some((ach) => {
+          console.log(ach.id + "  " + (ind + 1));
+          return ach.id === ind + 1}),
+        ...data,
+      };
+    });
+    const sortedAchs = achs.sort((ach_1, ach_2) => {
+      if (ach_1.done === ach_2.done) {
+        return ach_2.rarity - ach_1.rarity;
+      }
+      return ach_1.done ? -1 : 1;
+    });
+    const FiltersedAch: achievement[] = [];
+    sortedAchs.forEach((ach) => {
+      filters.has(ach.rarity) &&
+        ((ach.done && filters.has(4)) || (!ach.done && filters.has(5))) &&
+        FiltersedAch.push(JSON.parse(JSON.stringify(ach)));
+    });
+    const SearchAch: achievement[] = [];
+    FiltersedAch.forEach((ach) => {
+      (ach.title.toLowerCase().includes(search.toLowerCase()) ||
+        ach.description.toLowerCase().includes(search.toLowerCase())) &&
+        SearchAch.push(JSON.parse(JSON.stringify(ach)));
+    });
+    return SearchAch;
+  }
+  useEffect(() => {
+    console.log("logging...");
+    window.__TAURI__.tauri.invoke("get_user").then((user:User) => {fetchAchievements(user.username);});
+  },[setFetched]);
+  //------------------------------------------------------------------------------------------------------------
+
   return (
     <div className="flex flex-col gap-5 items-center" data-tauri-drag-region>
       <div className="flex gap-2">
@@ -138,7 +169,8 @@ export default function AchievementsLayout() {
           </PopoverContent>
         </Popover>
       </div>
-      <AchievementsList finalAchs={SearchAch} />
+
+      <AchievementsList finalAchs={setupAchievements(fetched)} />
     </div>
   );
 }

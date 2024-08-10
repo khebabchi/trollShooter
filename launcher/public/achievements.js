@@ -8,13 +8,13 @@ const achievements = [
   {
     img: "2.png",
     title: "Hehe ! ",
-    description: "kill 20 troll faces in a single game",
+    description: "kill 30 troll faces in a single game",
     rarity: 2,
   },
   {
     img: "3.png",
     title: "Health Keeper",
-    description: "kill 5 monsters in a single game",
+    description: "kill 10 monsters in a single game",
     rarity: 3,
   },
   {

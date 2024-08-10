@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use wasm_bindgen::prelude::wasm_bindgen;
 
 use crate::EnemyName;
 
@@ -25,10 +26,13 @@ impl AppState {
     pub fn handle(
         mut exit: EventWriter<AppExit>,
         mut app_state: ResMut<AppState>,
+        global: Res<Global>,
         time: Res<Time>,
     ) {
         app_state.timer.tick(time.delta());
         if app_state.exit && app_state.timer.just_finished() {
+            updateScore(global.score);
+            endGame();
             exit.send(AppExit::Success);
         }
     }
@@ -116,7 +120,7 @@ pub fn load_recources(mut commands: Commands, asset_server: Res<AssetServer>) {
         spawn_rate: 0.2,
         score: 0,
         cummulated_spawn: 1.,
-        achievements: Achievements::DEFAULT,
+        achievements: Achievements::default(),
         spawn_timer: Timer::from_seconds(1., TimerMode::Repeating),
         timer_count: 1,
         difficulty: 1,
@@ -148,34 +152,63 @@ impl Global {
     ) {
         self.score += match enemy_name {
             EnemyName::TrollFace => 3,
-            EnemyName::BoyFace(_) => 1,
-            EnemyName::ExcitedFace => 10,
             EnemyName::Monster(_) => 5,
         };
         score_text.sections[1].value = self.score.to_string();
-    }
-}
-
-pub struct Scores;
-impl Scores {
-    pub fn get(name: EnemyName) -> u8 {
-        match name {
-            EnemyName::TrollFace => 1,
-            EnemyName::BoyFace(_) => 3,
-            EnemyName::ExcitedFace => 10,
-            EnemyName::Monster(_) => 1,
-        }
+        Achievements::check_score(self.score);
     }
 }
 
 #[derive(Component)]
 pub struct GlobalScoreText;
-
+#[derive(Debug, Default)]
 pub struct Achievements {
-    pub kill_troll_face: bool,
+    kill_troll_face: u32,
+    kill_monster_face: u32,
+    kill_angry_face: u32,
+}
+
+#[wasm_bindgen(module = "/src/toast.js")]
+extern "C" {
+    fn postAchievement(id: u32);
+    fn endGame();
+    fn updateScore(score: u32);
 }
 impl Achievements {
-    pub const DEFAULT: Achievements = Achievements {
-        kill_troll_face: false,
-    };
+    pub fn inc_troll(&mut self) {
+        self.kill_troll_face += 1;
+        if self.kill_troll_face == 30 {
+            Self::validate(2);
+        }
+    }
+    pub fn inc_angry(&mut self) {
+        self.kill_angry_face += 1;
+        if self.kill_angry_face == 10 {
+            Self::validate(4);
+        }
+    }
+    pub fn inc_monster(&mut self) {
+        self.kill_monster_face += 1;
+        if self.kill_monster_face == 10 {
+            Self::validate(3);
+        }
+    }
+    pub fn check_score(score: u32) {
+        if score < 310 && score >= 300 {
+            Self::validate(5);
+            return;
+        }
+        if score < 610 && score >= 600 {
+            Self::validate(6);
+            return;
+        }
+        if score < 810 && score >= 800 {
+            Self::validate(7);
+            return;
+        }
+    }
+
+    pub fn validate(id: u32) {
+        postAchievement(id);
+    }
 }

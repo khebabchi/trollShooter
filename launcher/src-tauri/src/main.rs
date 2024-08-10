@@ -3,14 +3,18 @@
 use rodio::{source::Source, Decoder, OutputStream, Sink};
 use serde::{Deserialize, Serialize};
 use std::io::BufReader;
-use std::time::Duration;
+use std::sync::Mutex;
 use std::{fs::File, thread};
-use tauri::{AppHandle, Manager, PhysicalSize, Size};
+use tauri::{AppHandle, Manager, PhysicalSize, Size, State};
 use window_shadows::set_shadow;
 
-#[derive(Debug, Serialize, Deserialize)]
-struct UserInfo {
-    login_token: Option<String>,
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct User {
+    pub username: String,
+    pub email: String,
+    pub password: String,
+    pub topScore: i8,
+    pub createdAt: String,
 }
 
 //if let Some(proj_dirs) = ProjectDirs::from("git","SiDorios","Survive the troll") {
@@ -31,7 +35,9 @@ fn main() {
             not_connected,
             play,
             show_window,
-            hide_window
+            hide_window,
+            set_user,
+            get_user
         ])
         .setup(|app| {
             let window = app.get_window("main").unwrap();
@@ -39,13 +45,14 @@ fn main() {
             set_shadow(&window, true).unwrap();
             Ok(())
         })
+        .manage(Mutex::new(User::default()))
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
 
 #[tauri::command]
 fn not_connected(app: AppHandle) {
-    thread::spawn(move || {
+    /*   thread::spawn(move || {
         let resource_path = app
             .path_resolver()
             .resolve_resource("assets/laugh.mp3")
@@ -59,8 +66,20 @@ fn not_connected(app: AppHandle) {
         sink.append(source_laugh);
 
         sink.sleep_until_end();
-    });
+    });*/
 }
+
+#[tauri::command(rename_all = "snake_case")]
+fn set_user(user: User, user_state: State<Mutex<User>>) {
+    let mut userstate = user_state.lock().unwrap();
+    *userstate = user;
+}
+
+#[tauri::command(rename_all = "snake_case")]
+fn get_user(user_state: State<Mutex<User>>) -> User {
+    user_state.lock().unwrap().clone()
+}
+
 #[tauri::command]
 fn close_window(app: AppHandle) {
     let window = app.get_window("main").unwrap();
@@ -111,8 +130,8 @@ fn play(app: AppHandle) {
     let window = app.get_window("main").unwrap();
     window
         .set_size(Size::Physical(PhysicalSize {
-            width: 793,
-            height: 793,
+            width: 809,
+            height: 832,
         }))
         .unwrap();
     window.set_decorations(true).unwrap();
@@ -120,7 +139,7 @@ fn play(app: AppHandle) {
 
 #[tauri::command]
 fn home(app: AppHandle) {
-    let resource_path = app
+    /*  let resource_path = app
         .path_resolver()
         .resolve_resource("assets/bg.mp3")
         .expect("failed to resolve resource");
@@ -135,7 +154,7 @@ fn home(app: AppHandle) {
         sink.append(source_bg.repeat_infinite());
 
         sink.sleep_until_end();
-    });
+    });*/
     let window = app.get_window("main").unwrap();
     window
         .set_size(Size::Physical(PhysicalSize {
@@ -143,4 +162,5 @@ fn home(app: AppHandle) {
             height: 850,
         }))
         .unwrap();
+     window.set_decorations(false).unwrap();
 }
