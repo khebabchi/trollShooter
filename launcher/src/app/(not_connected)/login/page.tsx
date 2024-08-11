@@ -6,13 +6,15 @@ import Logo from "../../logo";
 import { useContext, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { AppContext, User } from "@/app/_context/appContext";
+import { invoke } from "@tauri-apps/api/tauri";
+import { Body, fetch } from "@tauri-apps/api/http";
 //import { Body} from "@tauri-apps/api/http";
 export default function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   if (typeof window !== "undefined") {
-    window.__TAURI__.tauri.invoke("login");
+    invoke("login");
     console.log("window.__TAURI__.http");
   }
 
@@ -23,12 +25,12 @@ export default function Login() {
     setErrorMessage("");
     const url = `https://trollshooterbackend-production.up.railway.app/user/login`;
     try {
-      const response = await window.__TAURI__.http.fetch(url, {
+      const response = await fetch(url, {
         method: "POST",
         headers: {
           "Content-Type": "application/json", // Correctly set the content type
         },
-        body: window.__TAURI__.http.Body.json({
+        body: Body.json({
           username,
           password,
         }),
@@ -36,11 +38,11 @@ export default function Login() {
       if (!response.ok) {
         setErrorMessage("Username/password incorrect");
       } else {
-        const user: User = response.data;
+        const user: User = response.data as User;
         if (!user) {
           setErrorMessage("Username/password incorrect");
         } else {
-          window.__TAURI__.tauri.invoke("set_user", { user });
+          invoke("set_user", { user });
 
           console.log(user);
           router.push("/home");

@@ -26,8 +26,8 @@ export default function AchievementsList({
     i++
   ) {
     paginationItems.push(
-      <PaginationItem>
-        <PaginationLink onClick={() => setPgInd(i)} isActive={i == pgInd}>
+      <PaginationItem key={i}>
+        <PaginationLink key={i} onClick={() => setPgInd(i)} isActive={i == pgInd}>
           {i}
         </PaginationLink>
       </PaginationItem>
@@ -35,8 +35,8 @@ export default function AchievementsList({
   }
   if (paginationItems.length == 0)
     paginationItems.push(
-      <PaginationItem>
-        <PaginationLink isActive>1</PaginationLink>
+      <PaginationItem key={1}>
+        <PaginationLink key={1} isActive>1</PaginationLink>
       </PaginationItem>
     );
   // end pagination

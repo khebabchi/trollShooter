@@ -5,6 +5,7 @@ import useNetworkStatus from "../useNetworkStatus";
 import NetworkOffline from "../networkOffline";
 import { Minus, X } from "lucide-react";
 import { usePathname } from "next/navigation";
+import { invoke } from "@tauri-apps/api/tauri";
 
 interface AppState {
   appStarted: boolean;
@@ -35,7 +36,7 @@ const AppProvider: FC<{ children: ReactNode }> = ({ children }) => {
  
   useEffect(() => {
     document.body.style.overflow = "hidden";
-    //document.addEventListener("contextmenu", (event) => event.preventDefault());
+    document.addEventListener("contextmenu", (event) => event.preventDefault());
     
     const f = (e: any) => {
       for (let i = 1; i <= 12; i++) {
@@ -56,7 +57,7 @@ const AppProvider: FC<{ children: ReactNode }> = ({ children }) => {
     
     if (!started && networkChecker.isOnline) {
       setTimeout(() => setAppState({ appStarted: true }), 5700);
-      window.__TAURI__.tauri.invoke("not_connected");
+      invoke("not_connected");
       setStarted(true);
     }
   }, [appState.appStarted, started, setAppState, networkChecker.isOnline]);
@@ -79,13 +80,13 @@ const AppProvider: FC<{ children: ReactNode }> = ({ children }) => {
             <Minus
               className=" text-white hover:opacity-70 hover:cursor-pointer z-10"
               onClick={() => {
-                window.__TAURI__.tauri.invoke("minimize_window");
+                invoke("minimize_window");
               }}
             />
             <X
               className=" text-white hover:opacity-70 hover:cursor-pointer z-10"
               onClick={() => {
-                 window.__TAURI__.tauri.invoke("close_window");
+                 invoke("close_window");
               }}
             />
           </div>

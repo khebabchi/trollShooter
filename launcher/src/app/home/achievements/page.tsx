@@ -8,18 +8,18 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
-import { useEffect,  useState } from "react";
+import { useEffect, useState } from "react";
 import { CheckedState } from "@radix-ui/react-checkbox";
 import { achievement } from "./achievement";
 import { User } from "@/app/_context/appContext";
-
+import { invoke } from "@tauri-apps/api/tauri";
+import { fetch } from "@tauri-apps/api/http";
+type FetchType = { id: number; username: string; unlocked_at: string }[];
 export default function AchievementsLayout() {
   const [open, setOpen] = useState(false);
   const [filters, setFilters] = useState(new Set([1, 2, 3, 4, 5]));
   const [search, setSearch] = useState("");
-  const [fetched, setFetched] = useState<
-    { id: number; username: string; unlocked_at: string }[]
-  >([]);
+  const [fetched, setFetched] = useState<FetchType>([]);
   function HandleSelectChange(checked: CheckedState, i: number) {
     const newFilters = new Set(filters); // Create a copy of the current filters
     if (checked) {
@@ -31,14 +31,14 @@ export default function AchievementsLayout() {
   }
 
   //------------------------------------------------------------------------------------------------------------
-  async function fetchAchievements(username:string|undefined) {
+  async function fetchAchievements(username: string | undefined) {
     try {
-      const response = await window.__TAURI__.http.fetch(
+      const response = await fetch(
         `https://trollshooterbackend-production.up.railway.app/users/${username}/achievements`
       );
       if (response.ok) {
-        setFetched(response.data);
-        console.log(response.data)
+        setFetched(response.data as FetchType);
+        console.log(response.data);
       }
     } catch (error: any) {
       console.error(error);
@@ -49,11 +49,10 @@ export default function AchievementsLayout() {
     fetched: { id: number; username: string; unlocked_at: string }[]
   ): achievement[] {
     const achs = achievements.map((data, ind) => {
-      
       return {
         done: fetched.some((ach) => {
-          console.log(ach.id + "  " + (ind + 1));
-          return ach.id === ind + 1}),
+          return ach.id === ind + 1;
+        }),
         ...data,
       };
     });
@@ -78,9 +77,10 @@ export default function AchievementsLayout() {
     return SearchAch;
   }
   useEffect(() => {
-    console.log("logging...");
-    window.__TAURI__.tauri.invoke("get_user").then((user:User) => {fetchAchievements(user.username);});
-  },[setFetched]);
+    invoke("get_user").then((user) => {
+      fetchAchievements((user as User).username);
+    });
+  }, [setFetched]);
   //------------------------------------------------------------------------------------------------------------
 
   return (

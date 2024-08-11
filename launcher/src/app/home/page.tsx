@@ -2,10 +2,11 @@
 import { redirect } from "next/navigation";
 import { User } from "../_context/appContext";
 import { useEffect, useState } from "react";
+import { invoke } from "@tauri-apps/api/tauri";
 export default function Home() {
   const [user,setUser]=useState<User>({username:"",email:"",topScore:0,})
   useEffect(()=>{},[setUser])
-  window.__TAURI__.tauri.invoke("get_user").then((user:User) =>setUser(user))
+  invoke("get_user").then((user) =>setUser(user as User))
   return (
     <div className="flex flex-col gap-4 pt-5">
       <div className="flex gap-2">

@@ -52,7 +52,7 @@ fn main() {
 
 #[tauri::command]
 fn not_connected(app: AppHandle) {
-    /*   thread::spawn(move || {
+    thread::spawn(move || {
         let resource_path = app
             .path_resolver()
             .resolve_resource("assets/laugh.mp3")
@@ -66,7 +66,7 @@ fn not_connected(app: AppHandle) {
         sink.append(source_laugh);
 
         sink.sleep_until_end();
-    });*/
+    });
 }
 
 #[tauri::command(rename_all = "snake_case")]
@@ -139,7 +139,7 @@ fn play(app: AppHandle) {
 
 #[tauri::command]
 fn home(app: AppHandle) {
-    /*  let resource_path = app
+    let resource_path = app
         .path_resolver()
         .resolve_resource("assets/bg.mp3")
         .expect("failed to resolve resource");
@@ -154,7 +154,7 @@ fn home(app: AppHandle) {
         sink.append(source_bg.repeat_infinite());
 
         sink.sleep_until_end();
-    });*/
+    });
     let window = app.get_window("main").unwrap();
     window
         .set_size(Size::Physical(PhysicalSize {
@@ -162,5 +162,5 @@ fn home(app: AppHandle) {
             height: 850,
         }))
         .unwrap();
-     window.set_decorations(false).unwrap();
+    window.set_decorations(false).unwrap();
 }

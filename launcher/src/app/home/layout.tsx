@@ -1,10 +1,11 @@
 "use client";
 import Logo from "../logo";
 import Link from "next/link";
-import { AwardIcon, SettingsIcon, UngroupIcon } from "lucide-react";
+import { AwardIcon, UngroupIcon, UserIcon } from "lucide-react";
 import { useContext, useRef } from "react";
 import { redirect, usePathname } from "next/navigation";
 import { AppContext, User } from "../_context/appContext";
+import { invoke } from "@tauri-apps/api/tauri";
 export default function HomeLayout({
   children,
 }: {
@@ -14,11 +15,12 @@ export default function HomeLayout({
   const appStarted = context?.appState.appStarted == true;
   const invoked = useRef(false);
   if (typeof window !== "undefined" && !invoked.current) {
-    window.__TAURI__.tauri.invoke("home");
+    invoke("home");
     invoked.current = true;
   }
   const path = usePathname();
-  window.__TAURI__.tauri.invoke("get_user").then((user:User) => {
+  invoke("get_user").then((userRaw) => {
+    let user: User = userRaw as User;
     if (!user.username) {
       console.info(user);
       redirect("/login");
@@ -44,7 +46,7 @@ export default function HomeLayout({
           >
             <Link
               href="/play/index.html"
-              onClick={() => window.__TAURI__.tauri.invoke("play")}
+              onClick={() => invoke("play")}
               className="selectDisable py-[6px] bg-white text-black hover:opacity-70 transition-opacity  font-semibold text-lg rounded-xl px-5 mr-5"
             >
               Play
@@ -54,9 +56,9 @@ export default function HomeLayout({
               className={linkClasses("/home")}
               href="/home"
             >
-              <SettingsIcon size={23} />
+              <UserIcon size={22} />
               <span className="ml-[-22px]">
-                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Profile
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Profile&nbsp;
               </span>
             </Link>
             <Link
@@ -66,7 +68,7 @@ export default function HomeLayout({
             >
               <AwardIcon size={23} />
               <span className="ml-[-22px]">
-                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Achievements
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Achievements&nbsp;
               </span>
             </Link>
             <Link
@@ -76,7 +78,7 @@ export default function HomeLayout({
             >
               <UngroupIcon size={23} />
               <span className="ml-[-22px]">
-                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Leaderboard
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Leaderboard&nbsp;
               </span>
             </Link>
           </div>
