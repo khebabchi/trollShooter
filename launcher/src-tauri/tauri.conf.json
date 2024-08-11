@@ -7,7 +7,7 @@
     "distDir": "../out"
   },
   "package": {
-    "productName": "launcher",
+    "productName": "trollShooter",
     "version": "0.1.0"
   },
   "tauri": {
