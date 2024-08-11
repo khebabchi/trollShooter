@@ -90,7 +90,7 @@ const AppProvider: FC<{ children: ReactNode }> = ({ children }) => {
               }}
             />
           </div>
-          {true || networkChecker.isOnline && typeof window !== "undefined" ? (
+          {networkChecker.isOnline && typeof window !== "undefined" ? (
             children
           ) : (
             <NetworkOffline data-tauri-drag-region />

@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/users")
+@RequestMapping("")
 public class UserController {
     UserRepository userRepository;
     AchievementRepository achievementRepository;
@@ -17,17 +17,17 @@ public class UserController {
         this.achievementRepository = achievementRepository;
     }
 
-    @PostMapping("")
+    @PostMapping("/user/signin")
     public void post(@RequestBody User user) {
         userRepository.insert(user.username(), user.email(), user.password());
     }
-
+    
     @PostMapping("/users/{username}/score/{score}")
     public void post(@PathVariable int score, @PathVariable String username) {
         userRepository.updateScore(username, score);
     }
-
-    @GetMapping("all")
+    
+    @GetMapping("/users")
     public List<UserInfo> getAll() {
         return userRepository.getAllInfo();
     }
@@ -38,7 +38,7 @@ public class UserController {
     ) {
     }
 
-    @GetMapping("")
+    @PostMapping("/user/login")
     public Optional<User> get(@RequestBody LoginInfo loginInfo) {
         return userRepository.get(loginInfo);
     }

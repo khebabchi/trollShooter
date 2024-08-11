@@ -12,17 +12,5 @@ public class BackendApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(BackendApplication.class, args);
-
-    }
-
-
-    @Bean
-    CommandLineRunner runner(AchievementRepository achievementRepository, UserRepository userRepository) {
-        return args -> {
-            System.out.println("AchievementRepository--------------------------------------------------------------");
-            userRepository.insert("amar", "amar@gmail.com", "password123");
-            achievementRepository.insert(0, "amar");
-            System.out.println("AchievementRepository--------------------------------------------------------------");
-        };
     }
 }

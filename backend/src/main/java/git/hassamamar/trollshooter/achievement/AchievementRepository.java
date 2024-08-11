@@ -18,7 +18,7 @@ public class AchievementRepository {
 
 
     public void insert(int id, String username) {
-        
+        Assert.state(id >= 1 && id <=7, "Achievement out of bounds: " + id);
         int update = jdbcClient.sql("INSERT INTO achievements (id,username,unlocked_at) VALUES (:id,:username,:unlocked_at);")
                 .param("id", id)
                 .param("username", username)

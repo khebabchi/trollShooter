@@ -41,12 +41,22 @@ export default function Signin() {
         setErrorMessage("User exists");
       } else {
         const user: User = response.data as User;
-        if(!user){
+        if (!user) {
           setErrorMessage("Server error");
-        }{
-           invoke("set_user", { user });
         }
-       
+        {
+          invoke("set_user", {
+            user: {
+              username,
+              email,
+              password,
+              topScore: 0,
+              createdAt: "",
+            },
+          });
+          console.log(user);
+          router.push("/home");
+        }
       }
     } catch (error: any) {
       setErrorMessage("Username exists, try to login instead");

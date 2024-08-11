@@ -21,6 +21,26 @@ export default function Home() {
         <span className="font-bold">Best score :</span>
         <span>{user.topScore} pt</span>
       </div>
+      <div className="flex gap-2">
+        <span className="font-bold"></span>
+      </div>{" "}
+      <div className="flex gap-2">
+        <span className="font-bold underline">Keys/Tips :</span>
+      </div>{" "}
+      <div className="flex gap-2">
+        <span className="font-bold">Shooting : [ Space ]</span>
+      </div>{" "}
+      <div className="flex gap-2">
+        <span className="font-bold">Rotate right: [ RightArrow ] or [ D ]</span>
+      </div>
+      <div className="flex gap-2">
+        <span className="font-bold">Rotate left: [ LeftArrow ] or [ Q ] </span>
+      </div>{" "}
+      <div className="flex gap-2">
+        <span className="font-bold">
+          Riffle Mode: hold [LeftShift] and shoot
+        </span>
+      </div>
     </div>
   );
 }

@@ -3,7 +3,7 @@ import Logo from "../logo";
 import Link from "next/link";
 import { AwardIcon, UngroupIcon, UserIcon } from "lucide-react";
 import { useContext, useRef } from "react";
-import { redirect, usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { AppContext, User } from "../_context/appContext";
 import { invoke } from "@tauri-apps/api/tauri";
 export default function HomeLayout({
@@ -12,6 +12,7 @@ export default function HomeLayout({
   children: React.ReactNode;
 }) {
   const context = useContext(AppContext);
+  const router = useRouter();
   const appStarted = context?.appState.appStarted == true;
   const invoked = useRef(false);
   if (typeof window !== "undefined" && !invoked.current) {
@@ -23,7 +24,7 @@ export default function HomeLayout({
     let user: User = userRaw as User;
     if (!user.username) {
       console.info(user);
-      redirect("/login");
+      router.push("/login");
     }
   });
   const linkClasses = (href: string): string =>

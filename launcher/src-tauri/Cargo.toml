@@ -1,6 +1,6 @@
 [package]
-name = "trollShooter"
-version = "0.1.0"
+name = "app"
+version = "1.0.0"
 description = "troll shooter"
 authors = ["you"]
 license = ""

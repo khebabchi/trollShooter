@@ -30,13 +30,14 @@ public class UserRepository {
                 .param("username", username).param("score", score).update();
         Assert.state(update == 1, "Failed to create user " + username);
     }
-
+    
     public List<UserInfo> getAllInfo() {
         return jdbcClient.sql("SELECT username,top_score FROM users ORDER BY top_score DESC LIMIT 6").query(UserInfo.class).list();
     }
 
     public Optional<User> get(UserController.LoginInfo loginInfo) {
-        Optional<User> useropt = jdbcClient.sql("SELECT * FROM users WHERE username=:username AND password=:password").param("username", loginInfo.username()).param("password", loginInfo.password()).query(User.class).list().stream().findFirst();
+        Optional<User> useropt = jdbcClient.sql("SELECT * FROM users WHERE username=:username AND password=:password").param("username", loginInfo.username()).param("password",loginInfo.password()).query(User.class).list().stream().findFirst();
         return useropt.map(user -> new User(user.username(), user.email(), "", user.topScore(), user.createdAt()));
     }
 }
+
