@@ -44,21 +44,16 @@ export async function postAchievement(id) {
   }
 }
 export function endGame() {
- setTimeout(()=>window.location.href = "/home",5000)  
+ window.location.href = "/home";
 }
 
 export async function updateScore(score) {
   const url = `https://trollshooterbackend-production.up.railway.app/users/${window.user.username}/score/${score}`;
-  console.log({
-    topScore: Math.max(window.user.topScore, score),
-    ...window.user,
-  });
-  console.log(window.user);
-  console.log(window.user.topScore);
-  console.log(score);
+   window.user.topScore = Math.max(window.user.topScore, score);
   window.__TAURI__.tauri.invoke("set_user", {
-    user: { topScore: Math.max(window.user.topScore, score), ...window.user },
+    user: window.user
   });
+  window.__TAURI__.tauri.invoke("get_user").then((user)=>console.log(user));
   window.__TAURI__.http.fetch(url, {
     method: "POST",
   });
